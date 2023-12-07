@@ -5,8 +5,8 @@ trigger:
 
 variables:
   azureSubscription: '66b68384-31e6-479f-95c4-1fe59b56bc61'  #Replace it with Azure Subscription ID
-  webAppName: '$(appServiceName)'
-  environmentName: '$(appServiceName)'
+  webAppName: 'pfe-front-dev'
+  environmentName: 'pfe-front-dev'
   vmImageName: 'ubuntu-latest'
 
 stages:
