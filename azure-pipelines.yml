@@ -1,23 +1,12 @@
-# Node.js React Web App to Linux on Azure
-# Build a Node.js React app and deploy it to Azure as a Linux web app.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 trigger:
-- main
+  branches:
+    include:
+      - main
 
 variables:
-
-  # Azure Resource Manager connection created during pipeline creation
-  azureSubscription: '5d56accd-7e91-4d28-9507-ebb0e9834310'
-
-  # Web app name
-  webAppName: 'pfe-front-dev'
-
-  # Environment name
-  environmentName: 'pfe-front-dev'
-
-  # Agent VM image name
+  azureSubscription: '#############'  #Replace it with Azure Subscription ID
+  webAppName: '$(appServiceName)'
+  environmentName: '$(appServiceName)'
   vmImageName: 'ubuntu-latest'
 
 stages:
@@ -34,13 +23,12 @@ stages:
       inputs:
         versionSpec: '18.x'
       displayName: 'Install Node.js'
- 
+
     - script: |
         npm install
-        npm run build --if-present
-#       npm run test --if-present
-      displayName: 'npm install, build and test'
-      
+        npm run build
+      displayName: 'npm install and build'
+
     - task: ArchiveFiles@2
       displayName: 'Archive files'
       inputs:
@@ -50,7 +38,7 @@ stages:
         archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
         replaceExistingArchive: true
 
-    - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
       artifact: drop
 
 - stage: Deploy
@@ -67,16 +55,10 @@ stages:
       runOnce:
         deploy:
           steps:
-          - task: AzureRmWebAppDeployment@4
-            displayName: 'Azure App Service Deploy: pfe-front-dev'
+          - task: AzureWebApp@1
             inputs:
-              azureSubscription: $(azureSubscription)
-              appType: webAppLinux
-              WebAppName: $(webAppName)
-              packageForLinux: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-              RuntimeStack: 'NODE|18-lts'
-              StartupCommand: 'npm run start'
-              ScriptType: 'Inline Script'
-              InlineScript: |
-                npm install
-                npm run build --if-present
+              azureSubscription: 'next-js-conn' #Replace it with the Service Connection Name
+              appType: 'webAppLinux'
+              appName: '$(appServiceName)'
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+              runtimeStack: 'NODE|18-lts'
